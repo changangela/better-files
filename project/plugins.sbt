@@ -9,5 +9,3 @@ addSbtPlugin("org.xerial.sbt"            % "sbt-sonatype"            % "2.0")
 addSbtPlugin("com.codacy"                % "sbt-codacy-coverage"     % "1.3.11")
 // addSbtPlugin("io.github.davidgregory084" % "sbt-tpolecat"            % "0.1.3")
 addSbtPlugin("com.geirsson"              % "sbt-scalafmt"            % "1.4.0")
-
-addSbtPlugin("ch.epfl.lamp" % "sbt-dotty" % "0.2.0")
