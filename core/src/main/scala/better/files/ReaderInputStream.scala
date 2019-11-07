@@ -51,7 +51,8 @@ class ReaderInputStream(reader: Reader, encoder: CharsetEncoder, bufferSize: Int
     encoderOut.flip()
   }
 
-  override def read(b: Array[Byte], off: Int, len: Int) = {
+  override def read(_b: Array[Byte] | Null, off: Int, len: Int) = {
+    val b = _b.nn
     if (len < 0 || off < 0 || (off + len) > b.length)
       throw new IndexOutOfBoundsException("Array Size=" + b.length + ", offset=" + off + ", length=" + len)
     if (len == 0) {

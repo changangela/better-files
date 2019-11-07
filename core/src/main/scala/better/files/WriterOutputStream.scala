@@ -41,7 +41,7 @@ class WriterOutputStream(writer: Writer, decoder: CharsetDecoder, bufferSize: In
       flushImmediately = flushImmediately
     )
 
-  override def write(b: Array[Byte], off: Int, len: Int) = {
+  override def write(b: Array[Byte] | Null, off: Int, len: Int) = {
     @tailrec def loop(off: Int, len: Int): Unit = if (len > 0) {
       val c = decoderIn.remaining min len
       decoderIn.put(b, off, c)

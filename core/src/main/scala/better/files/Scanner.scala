@@ -189,6 +189,6 @@ object StringSplitter {
     * @return
     */
   def regex(pattern: String): StringSplitter = new StringSplitter {
-    override def split(s: String) = s.split(pattern, -1)
+    override def split(s: String) = s.split(pattern, -1).map(_.nn)
   }
 }

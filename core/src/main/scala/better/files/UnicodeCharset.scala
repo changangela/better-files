@@ -12,11 +12,12 @@ import scala.collection.JavaConverters._
   * @param writeByteOrderMarkers If set, write BOMs while encoding
   */
 class UnicodeCharset(underlyingCharset: Charset, writeByteOrderMarkers: Boolean)
-    extends Charset(underlyingCharset.name(), underlyingCharset.aliases().asScala.toArray) {
+    extends Charset(underlyingCharset.name(),
+                    underlyingCharset.aliases().asScala.toArray.map(_.asInstanceOf[String | Null])) {
   override def newDecoder() = new UnicodeDecoder(underlyingCharset)
   override def newEncoder() =
     if (writeByteOrderMarkers) new BomEncoder(underlyingCharset) else underlyingCharset.newEncoder()
-  override def contains(cs: Charset) = underlyingCharset.contains(cs)
+  override def contains(cs: Charset | Null) = underlyingCharset.contains(cs)
 }
 
 /**
@@ -51,7 +52,8 @@ class UnicodeDecoder(defaultCharset: Charset) extends CharsetDecoder(defaultChar
     }
   }
 
-  override def decodeLoop(in: ByteBuffer, out: CharBuffer) = decode(in = in, out = out, candidates = bomTable.keySet)
+  override def decodeLoop(in: ByteBuffer | Null, out: CharBuffer | Null) =
+    decode(in = in.nn, out = out.nn, candidates = bomTable.keySet)
 
   override def isCharsetDetected = inferredCharset.isDefined
 
@@ -73,7 +75,9 @@ class BomEncoder(charset: Charset) extends CharsetEncoder(charset, 1, 1) {
     .toArray
   private[this] var isBomWritten = false
 
-  override def encodeLoop(in: CharBuffer, out: ByteBuffer): CoderResult = {
+  override def encodeLoop(_in: CharBuffer | Null, _out: ByteBuffer | Null): CoderResult = {
+    val in  = _in.nn
+    val out = _out.nn
     if (!isBomWritten) {
       try {
         out.put(bom)

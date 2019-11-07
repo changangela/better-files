@@ -113,7 +113,7 @@ class File private (val path: Path)(implicit val fileSystem: FileSystem = path.g
     * @see parentOption
     * @return
     */
-  def parent: File =
+  def parent: File | Null =
     parentOption.orNull
 
   /**
@@ -160,7 +160,7 @@ class File private (val path: Path)(implicit val fileSystem: FileSystem = path.g
     } else if (asDirectory) {
       createDirectories()(attributes)
     } else {
-      if (createParents) parent.createDirectories()(attributes)
+      if (createParents) parent.nn.createDirectories()(attributes)
       try {
         createFile()(attributes)
       } catch {
@@ -194,10 +194,10 @@ class File private (val path: Path)(implicit val fileSystem: FileSystem = path.g
     sibling.isChildOf(parent)
 
   def siblings: Files =
-    parent.list.filterNot(_ == this)
+    parent.nn.list.filterNot(_ == this)
 
-  def isChildOf(parent: File): Boolean =
-    parent.isParentOf(this)
+  def isChildOf(parent: File | Null): Boolean =
+    parent.nn.isParentOf(this)
 
   /**
     * Check if this directory contains this file
@@ -573,7 +573,7 @@ class File private (val path: Path)(implicit val fileSystem: FileSystem = path.g
     inputStream(openOptions).apply(_.asObjectInputStream().deserialize[A])
 
   def register(service: WatchService, events: File.Events = File.Events.all): this.type = {
-    path.register(service, events.toArray)
+    path.register(service, events.toArray.map(_.asInstanceOf[WatchEvent.Kind[_] | Null]))
     this
   }
 
@@ -968,14 +968,14 @@ class File private (val path: Path)(implicit val fileSystem: FileSystem = path.g
       Files.walkFileTree(
         path,
         new SimpleFileVisitor[Path] {
-          def newPath(subPath: Path): Path = destination.path.resolve(path.relativize(subPath))
+          def newPath(subPath: Path | Null): Path = destination.path.resolve(path.relativize(subPath))
 
-          override def preVisitDirectory(dir: Path, attrs: BasicFileAttributes) = {
+          override def preVisitDirectory(dir: Path | Null, attrs: BasicFileAttributes | Null) = {
             Files.createDirectories(newPath(dir))
             super.preVisitDirectory(dir, attrs)
           }
 
-          override def visitFile(file: Path, attrs: BasicFileAttributes) = {
+          override def visitFile(file: Path | Null, attrs: BasicFileAttributes | Null) = {
             Files.copy(file, newPath(file), copyOptions: _*)
             super.visitFile(file, attrs)
           }
@@ -1224,7 +1224,7 @@ class File private (val path: Path)(implicit val fileSystem: FileSystem = path.g
       output <- newZipOutputStream(File.OpenOptions.default, charset).withCompressionLevel(compressionLevel).autoClosed
       input  <- files
       file   <- input.walk()
-      name = input.parent.relativize(file)
+      name = input.parent.nn.relativize(file)
     } output.add(file, name.toString)
     this
   }
@@ -1372,7 +1372,7 @@ object File {
     } else if (anchor.isDirectory) {
       anchor / p.toString
     } else {
-      anchor.parent / p.toString
+      anchor.parent.nn / p.toString
     }
   }
 
