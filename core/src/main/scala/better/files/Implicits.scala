@@ -115,14 +115,17 @@ trait Implicits extends ManagedResource.FlatMap.Implicits with Scanner.Read.Impl
         bufferSize: Int = DefaultBufferSize
       ): ObjectInputStream =
       new ObjectInputStream(if (bufferSize <= 0) in else buffered(bufferSize)) {
-        override protected def resolveClass(objectStreamClass: ObjectStreamClass): Class[_] =
+        override protected def resolveClass(_objectStreamClass: ObjectStreamClass | Null): Class[_] = {
+          val objectStreamClass = _objectStreamClass.nn
           try {
             Class.forName(objectStreamClass.getName, false, classLoader)
           } catch {
             case _: ClassNotFoundException ⇒ super.resolveClass(objectStreamClass)
           }
+        }
 
-        override protected def resolveProxyClass(interfaces: Array[String]): Class[_] = {
+        override protected def resolveProxyClass(_interfaces: Array[String | Null] | Null): Class[_] = {
+          val interfaces = _interfaces.nn
           try {
             java.lang.reflect.Proxy.getProxyClass(
               classLoader,
